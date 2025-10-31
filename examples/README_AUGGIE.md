@@ -69,6 +69,24 @@ This will run through several examples demonstrating different use cases.
 
 ## Examples Overview
 
+### Example 0: Model Validation and Normalization
+
+Learn about supported models and how model names are normalized:
+
+```python
+from valuecell.utils.auggie_client import (
+    normalize_model_name,
+    list_available_models,
+)
+
+# Show available models
+print(list_available_models())
+
+# Test model normalization
+print(normalize_model_name("anthropic/claude-3-5-sonnet"))  # → sonnet4.5
+print(normalize_model_name("gpt-4o"))  # → gpt5
+```
+
 ### Example 1: Basic Text Generation
 
 Simple text generation without structured output:

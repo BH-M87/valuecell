@@ -15,6 +15,121 @@ import asyncio
 from pydantic import BaseModel
 
 
+# Supported Auggie models
+AUGGIE_SUPPORTED_MODELS = {
+    "haiku4.5": "Claude Haiku 4.5",
+    "sonnet4": "Claude Sonnet 4",
+    "sonnet4.5": "Claude Sonnet 4.5",
+    "gpt5": "GPT-5",
+}
+
+# Model aliases for backward compatibility
+AUGGIE_MODEL_ALIASES = {
+    # Anthropic aliases
+    "anthropic/claude-haiku-4.5": "haiku4.5",
+    "anthropic/claude-3-5-haiku": "haiku4.5",
+    "claude-haiku-4.5": "haiku4.5",
+    "claude-3-5-haiku": "haiku4.5",
+
+    "anthropic/claude-sonnet-4": "sonnet4",
+    "anthropic/claude-4-sonnet": "sonnet4",
+    "claude-sonnet-4": "sonnet4",
+    "claude-4-sonnet": "sonnet4",
+
+    "anthropic/claude-sonnet-4.5": "sonnet4.5",
+    "anthropic/claude-3-5-sonnet-20241022": "sonnet4.5",
+    "anthropic/claude-3-5-sonnet": "sonnet4.5",
+    "claude-sonnet-4.5": "sonnet4.5",
+    "claude-3-5-sonnet": "sonnet4.5",
+
+    # OpenAI aliases
+    "openai/gpt-5": "gpt5",
+    "gpt-5": "gpt5",
+    "openai/gpt5": "gpt5",
+
+    # Google aliases (map to best available)
+    "google/gemini-2.5-flash": "sonnet4.5",
+    "google/gemini-1.5-pro": "sonnet4.5",
+    "gemini-2.5-flash": "sonnet4.5",
+    "gemini-1.5-pro": "sonnet4.5",
+
+    # DeepSeek aliases (map to best available)
+    "deepseek/deepseek-chat-v3-0324": "sonnet4.5",
+    "deepseek-chat": "sonnet4.5",
+
+    # Generic aliases
+    "gpt-4o": "gpt5",
+    "gpt-4o-mini": "haiku4.5",
+    "gpt-4": "gpt5",
+}
+
+
+def normalize_model_name(model: Optional[str]) -> str:
+    """
+    Normalize model name to auggie's supported format.
+
+    Args:
+        model: Model name in various formats
+
+    Returns:
+        Normalized model name supported by auggie
+
+    Raises:
+        ValueError: If model is not supported
+    """
+    if not model:
+        # Default to sonnet4.5
+        return "sonnet4.5"
+
+    # Check if already a valid auggie model
+    if model in AUGGIE_SUPPORTED_MODELS:
+        return model
+
+    # Check aliases
+    if model in AUGGIE_MODEL_ALIASES:
+        return AUGGIE_MODEL_ALIASES[model]
+
+    # Try case-insensitive match
+    model_lower = model.lower()
+    if model_lower in AUGGIE_SUPPORTED_MODELS:
+        return model_lower
+
+    for alias, auggie_model in AUGGIE_MODEL_ALIASES.items():
+        if alias.lower() == model_lower:
+            return auggie_model
+
+    # Model not found - provide helpful error message
+    raise ValueError(
+        f"Model '{model}' is not supported by auggie. "
+        f"Supported models: {', '.join(AUGGIE_SUPPORTED_MODELS.keys())}. "
+        f"Available models:\n" +
+        "\n".join([f"  - {name} [{key}]" for key, name in AUGGIE_SUPPORTED_MODELS.items()])
+    )
+
+
+def get_available_models() -> Dict[str, str]:
+    """
+    Get dictionary of available auggie models.
+
+    Returns:
+        Dictionary mapping model IDs to their full names
+    """
+    return AUGGIE_SUPPORTED_MODELS.copy()
+
+
+def list_available_models() -> str:
+    """
+    Get a formatted string of available models.
+
+    Returns:
+        Formatted string listing all available models
+    """
+    lines = ["Available auggie models:"]
+    for key, name in AUGGIE_SUPPORTED_MODELS.items():
+        lines.append(f"  - {name} [{key}]")
+    return "\n".join(lines)
+
+
 class AuggieClient:
     """Client for interacting with LLM models through auggie CLI."""
 
@@ -24,17 +139,24 @@ class AuggieClient:
         workspace_root: Optional[str] = None,
         max_turns: Optional[int] = None,
         quiet: bool = True,
+        validate_model: bool = True,
     ):
         """
         Initialize the Auggie client.
 
         Args:
-            model: Model ID to use (e.g., "claude-3-5-sonnet-20241022")
+            model: Model ID to use (e.g., "sonnet4.5", "haiku4.5", "gpt5")
+                   Also accepts common aliases like "anthropic/claude-3-5-sonnet"
             workspace_root: Workspace root directory
             max_turns: Maximum number of agentic turns
             quiet: Only show final assistant message
+            validate_model: Whether to validate and normalize model name (default: True)
         """
-        self.model = model
+        if validate_model:
+            self.model = normalize_model_name(model)
+        else:
+            self.model = model
+
         self.workspace_root = workspace_root or os.getcwd()
         self.max_turns = max_turns
         self.quiet = quiet

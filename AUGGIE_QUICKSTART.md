@@ -95,13 +95,26 @@ LLM Model (OpenAI, Anthropic, Google, etc.)
 
 ## Available Models
 
-When using auggie, you can access:
+Auggie supports the following models:
 
-- **OpenAI**: `openai/gpt-4o`, `openai/gpt-4o-mini`
-- **Anthropic**: `anthropic/claude-3-5-sonnet-20241022`, `anthropic/claude-haiku-4.5`
-- **Google**: `google/gemini-2.5-flash`, `google/gemini-1.5-pro`
-- **DeepSeek**: `deepseek/deepseek-chat-v3-0324`
-- And many more...
+- **Claude Haiku 4.5** - `haiku4.5` - Fast and efficient
+- **Claude Sonnet 4** - `sonnet4` - Balanced performance
+- **Claude Sonnet 4.5** - `sonnet4.5` - Most capable (default)
+- **GPT-5** - `gpt5` - OpenAI's latest
+
+### Model Aliases
+
+For backward compatibility, the integration automatically maps common model names:
+
+```python
+# These all map to auggie's supported models:
+"anthropic/claude-3-5-sonnet" → "sonnet4.5"
+"anthropic/claude-haiku-4.5" → "haiku4.5"
+"openai/gpt-5" → "gpt5"
+"google/gemini-2.5-flash" → "sonnet4.5"
+"gpt-4o" → "gpt5"
+"gpt-4o-mini" → "haiku4.5"
+```
 
 Check available models:
 ```bash
@@ -110,16 +123,26 @@ auggie model list
 
 ## Configuration
 
-Your existing model configuration works with auggie:
+Your existing model configuration works with auggie (model names are automatically mapped):
 
 ```bash
 # .env
 USE_AUGGIE=true
 
-# These model IDs are used by auggie
-PLANNER_MODEL_ID=google/gemini-2.5-flash
-RESEARCH_AGENT_MODEL_ID=google/gemini-2.5-flash
-SEC_PARSER_MODEL_ID=openai/gpt-4o-mini
+# These model IDs will be automatically mapped to auggie models:
+PLANNER_MODEL_ID=sonnet4.5              # Or use: google/gemini-2.5-flash
+RESEARCH_AGENT_MODEL_ID=sonnet4.5       # Or use: anthropic/claude-3-5-sonnet
+SEC_PARSER_MODEL_ID=haiku4.5            # Or use: openai/gpt-4o-mini
+```
+
+**Recommended Configuration:**
+```bash
+# Use auggie's native model IDs for best performance
+PLANNER_MODEL_ID=sonnet4.5
+RESEARCH_AGENT_MODEL_ID=sonnet4.5
+SEC_PARSER_MODEL_ID=haiku4.5
+AI_HEDGE_FUND_PARSER_MODEL_ID=sonnet4.5
+PRODUCT_MODEL_ID=haiku4.5
 ```
 
 ## Switching Back

@@ -22,7 +22,12 @@ from pydantic import BaseModel, Field
 # Add parent directory to path
 sys.path.insert(0, str(Path(__file__).parent.parent / "python"))
 
-from valuecell.utils.auggie_client import AuggieClient
+from valuecell.utils.auggie_client import (
+    AuggieClient,
+    normalize_model_name,
+    get_available_models,
+    list_available_models,
+)
 from valuecell.utils.auggie_adapter import get_auggie_model
 
 
@@ -43,21 +48,64 @@ class MarketSummary(BaseModel):
     risk_level: str = Field(description="Current risk level: low, medium, or high")
 
 
+def example_0_model_validation():
+    """Example 0: Model validation and normalization."""
+    print("\n" + "="*60)
+    print("Example 0: Model Validation and Normalization")
+    print("="*60)
+
+    # Show available models
+    print("\n" + list_available_models())
+
+    # Test model normalization
+    print("\n" + "-"*60)
+    print("Model Name Normalization Examples:")
+    print("-"*60)
+
+    test_models = [
+        "sonnet4.5",
+        "anthropic/claude-3-5-sonnet",
+        "google/gemini-2.5-flash",
+        "gpt-4o",
+        "openai/gpt-4o-mini",
+    ]
+
+    for model in test_models:
+        try:
+            normalized = normalize_model_name(model)
+            print(f"  '{model}' → '{normalized}'")
+        except ValueError as e:
+            print(f"  '{model}' → ERROR: {e}")
+
+    # Test invalid model
+    print("\n" + "-"*60)
+    print("Invalid Model Example:")
+    print("-"*60)
+    try:
+        normalize_model_name("invalid-model-name")
+    except ValueError as e:
+        print(f"  Error (expected): {str(e)[:100]}...")
+
+
 def example_1_basic_usage():
     """Example 1: Basic text generation."""
     print("\n" + "="*60)
     print("Example 1: Basic Text Generation")
     print("="*60)
-    
+
+    # Note: Model names are automatically normalized
+    # "google/gemini-2.5-flash" → "sonnet4.5"
     client = AuggieClient(
-        model="google/gemini-2.5-flash",
+        model="google/gemini-2.5-flash",  # Will be mapped to sonnet4.5
         max_turns=1,
         quiet=True
     )
-    
+
+    print(f"Using model: {client.model}")  # Will show: sonnet4.5
+
     prompt = "Explain what a stock market index is in 2-3 sentences."
     print(f"\nPrompt: {prompt}")
-    
+
     response = client.invoke(prompt)
     print(f"\nResponse:\n{response}")
 
@@ -270,6 +318,7 @@ def main():
     
     try:
         # Run examples
+        example_0_model_validation()
         example_1_basic_usage()
         example_2_structured_output()
         example_3_langchain_adapter()
