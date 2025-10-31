@@ -24,6 +24,44 @@ The Auggie integration allows you to use the `auggie` command-line tool to inter
    auggie --help
    ```
 
+## Supported Models
+
+Auggie currently supports the following models:
+
+| Model ID | Full Name | Description |
+|----------|-----------|-------------|
+| `haiku4.5` | Claude Haiku 4.5 | Fast and efficient, best for simple tasks |
+| `sonnet4` | Claude Sonnet 4 | Balanced performance and capability |
+| `sonnet4.5` | Claude Sonnet 4.5 | Most capable, recommended (default) |
+| `gpt5` | GPT-5 | OpenAI's latest model |
+
+### Model Aliases
+
+For backward compatibility, common model names are automatically mapped to auggie's supported models:
+
+```python
+# Anthropic aliases
+"anthropic/claude-3-5-sonnet-20241022" → "sonnet4.5"
+"anthropic/claude-3-5-sonnet" → "sonnet4.5"
+"anthropic/claude-haiku-4.5" → "haiku4.5"
+"claude-3-5-sonnet" → "sonnet4.5"
+
+# OpenAI aliases
+"openai/gpt-5" → "gpt5"
+"openai/gpt-4o" → "gpt5"
+"gpt-4o" → "gpt5"
+"gpt-4o-mini" → "haiku4.5"
+
+# Google aliases (mapped to best available)
+"google/gemini-2.5-flash" → "sonnet4.5"
+"google/gemini-1.5-pro" → "sonnet4.5"
+
+# DeepSeek aliases (mapped to best available)
+"deepseek/deepseek-chat-v3-0324" → "sonnet4.5"
+```
+
+**Note**: If you specify an unsupported model, you'll get a clear error message listing available options.
+
 ## Configuration
 
 ### Enable Auggie Integration
@@ -36,24 +74,31 @@ USE_AUGGIE=true
 
 # Optional: Specify workspace root (defaults to current directory)
 WORKSPACE_ROOT=/path/to/your/workspace
-
-# Optional: Specify default model for auggie
-# If not set, will use the model IDs from existing environment variables
-AUGGIE_DEFAULT_MODEL=google/gemini-2.5-flash
 ```
 
 ### Model Configuration
 
-When `USE_AUGGIE=true`, the system will use auggie to call models instead of direct API calls. The model IDs from your existing configuration will be passed to auggie:
+When `USE_AUGGIE=true`, the system will use auggie to call models. You can use either auggie's native model IDs or common aliases (which are automatically mapped):
 
+**Option 1: Use auggie's native model IDs (recommended)**
 ```bash
-# These model IDs will be used with auggie when USE_AUGGIE=true
-PLANNER_MODEL_ID=google/gemini-2.5-flash
-SEC_PARSER_MODEL_ID=openai/gpt-4o-mini
-SEC_ANALYSIS_MODEL_ID=deepseek/deepseek-chat-v3-0324
-AI_HEDGE_FUND_PARSER_MODEL_ID=google/gemini-2.5-flash
-RESEARCH_AGENT_MODEL_ID=google/gemini-2.5-flash
-PRODUCT_MODEL_ID=anthropic/claude-haiku-4.5
+PLANNER_MODEL_ID=sonnet4.5
+SEC_PARSER_MODEL_ID=haiku4.5
+SEC_ANALYSIS_MODEL_ID=sonnet4.5
+AI_HEDGE_FUND_PARSER_MODEL_ID=sonnet4.5
+RESEARCH_AGENT_MODEL_ID=sonnet4.5
+PRODUCT_MODEL_ID=haiku4.5
+```
+
+**Option 2: Use familiar model names (automatically mapped)**
+```bash
+# These will be automatically converted to auggie model IDs
+PLANNER_MODEL_ID=google/gemini-2.5-flash        # → sonnet4.5
+SEC_PARSER_MODEL_ID=openai/gpt-4o-mini          # → haiku4.5
+SEC_ANALYSIS_MODEL_ID=deepseek/deepseek-chat    # → sonnet4.5
+AI_HEDGE_FUND_PARSER_MODEL_ID=anthropic/claude-3-5-sonnet  # → sonnet4.5
+RESEARCH_AGENT_MODEL_ID=google/gemini-2.5-flash # → sonnet4.5
+PRODUCT_MODEL_ID=anthropic/claude-haiku-4.5     # → haiku4.5
 ```
 
 ## Architecture
